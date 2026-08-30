@@ -53,14 +53,20 @@ Frontend (HTML/CSS/JavaScript)
             |
             v
        MySQL Database
-Request Flow
-The frontend sends a request using JavaScript fetch().
-FastAPI receives the request through the appropriate route.
-Pydantic validates the request data.
-The CRUD layer handles database operations.
-SQLAlchemy communicates with MySQL.
-The result is returned as JSON to the frontend.
-Project Structure
+```
+
+### Request Flow
+
+1. The frontend sends a request using JavaScript `fetch()`.
+2. FastAPI receives the request through the appropriate route.
+3. Pydantic validates the request data.
+4. The CRUD layer handles database operations.
+5. SQLAlchemy communicates with MySQL.
+6. The result is returned as JSON to the frontend.
+
+## Project Structure
+
+```text
 student-management-api/
 │
 ├── app/
@@ -83,88 +89,107 @@ student-management-api/
 ├── .gitignore
 ├── requirements.txt
 └── README.md
-Database Setup
+```
 
-Make sure MySQL Server is installed and running.
+## Database Setup
 
-Create the database:
+1. Make sure MySQL Server is installed and running.
+2. Create the database:
+   ```sql
+   CREATE DATABASE student_db;
+   ```
+3. The required tables are created automatically by SQLAlchemy when the application starts.
 
-CREATE DATABASE student_db;
+## Environment Configuration
 
-The required tables are created automatically by SQLAlchemy when the application starts.
+Create a `.env` file in the project root using `.env.example` as a template.
 
-Environment Configuration
-
-Create a .env file in the project root using .env.example as a template.
-
+```env
 DB_USER=root
 DB_PASSWORD=your_mysql_password
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=student_db
+```
 
-Do not commit .env to GitHub.
+> Do not commit `.env` to GitHub.
 
-Installation
+## Installation
 
-Create a virtual environment:
+1. Create a virtual environment:
+   ```bash
+   python -m venv venv
+   ```
+2. Activate it on Windows:
+   ```bash
+   venv\Scripts\activate
+   ```
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-python -m venv venv
-
-Activate it on Windows:
-
-venv\Scripts\activate
-
-Install dependencies:
-
-pip install -r requirements.txt
-Run the Application
+## Run the Application
 
 Start the FastAPI server:
 
+```bash
 uvicorn app.main:app --reload
+```
 
 The application will be available at:
 
+```
 http://127.0.0.1:8000/
+```
 
 The frontend is served directly by FastAPI, so no separate frontend server is required.
 
-Swagger API Documentation
+## Swagger API Documentation
 
 FastAPI automatically provides interactive API documentation at:
 
+```
 http://127.0.0.1:8000/docs
-API Endpoints
-Method	Endpoint	Description
-POST	/students/	Create a student
-GET	/students/	List students
-GET	/students/{id}	Get a student
-PUT	/students/{id}	Update a student
-DELETE	/students/{id}	Delete a student
-GET /students/ Query Parameters
-Parameter	Type	Description
-search	string	Search by name, email, or course
-course	string	Filter by course
-department	string	Filter by department
-semester	integer	Filter by semester
-skip	integer	Number of records to skip
-limit	integer	Maximum records to return
-Student Data
+```
+
+## API Endpoints
+
+| Method | Endpoint         | Description        |
+|--------|------------------|---------------------|
+| POST   | `/students/`      | Create a student      |
+| GET    | `/students/`       | List students           |
+| GET    | `/students/{id}`   | Get a student              |
+| PUT    | `/students/{id}`   | Update a student              |
+| DELETE | `/students/{id}`   | Delete a student                |
+
+### `GET /students/` Query Parameters
+
+| Parameter    | Type    | Description                        |
+|--------------|---------|---------------------------------------|
+| `search`     | string  | Search by name, email, or course         |
+| `course`     | string  | Filter by course                            |
+| `department` | string  | Filter by department                           |
+| `semester`   | integer | Filter by semester                                |
+| `skip`       | integer | Number of records to skip                            |
+| `limit`      | integer | Maximum records to return                              |
+
+## Student Data
 
 Each student record contains:
 
-id
-name
-age
-email
-phone
-course
-department
-semester
+- id
+- name
+- age
+- email
+- phone
+- course
+- department
+- semester
 
 Example request:
 
+```json
 {
   "name": "Alex Roy",
   "age": 20,
@@ -174,22 +199,18 @@ Example request:
   "department": "CSE",
   "semester": 3
 }
-Screenshots
-Student Dashboard
+```
 
-Add project screenshot here.
 
-Add / Edit Student
+## Future Improvements
 
-Add project screenshot here.
+- Authentication and role-based access
+- CSV import/export
+- Sortable table columns
+- Automated testing with pytest
+- Audit fields such as `created_at` and `updated_at`
+- Cloud deployment
 
-Future Improvements
-Authentication and role-based access
-CSV import/export
-Sortable table columns
-Automated testing with pytest
-Audit fields such as created_at and updated_at
-Cloud deployment
-Author
+## Author
 
 Archismita Das
