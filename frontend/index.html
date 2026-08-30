@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Student Management System</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <h1>Student Management System</h1>
+    
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- Dashboard -->
+  <section class="dashboard">
+    <div class="stat-card">
+      <span class="stat-value" id="totalCount">–</span>
+      <span class="stat-label">Total students</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value" id="shownCount">–</span>
+      <span class="stat-label">Currently shown</span>
+    </div>
+    <button class="btn btn-primary" id="addBtn">+ Add Student</button>
+  </section>
+
+  <!-- Toolbar: search + filters -->
+  <section class="toolbar">
+    <input type="text" id="searchInput" placeholder="Search by name, email, or course..." />
+    <input type="text" id="courseFilter" placeholder="Filter: course" />
+    <input type="text" id="departmentFilter" placeholder="Filter: department" />
+    <input type="number" id="semesterFilter" placeholder="Filter: semester" min="1" max="12" />
+    <button class="btn btn-secondary" id="clearFiltersBtn">Clear</button>
+  </section>
+
+  <!-- Status / message banner -->
+  <div id="messageBanner" class="message hidden"></div>
+
+  <!-- Table -->
+  <section class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Age</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Course</th>
+          <th>Department</th>
+          <th>Semester</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="studentTableBody">
+        <tr><td colspan="9" class="empty-state">Loading students…</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Pagination -->
+  <section class="pagination">
+    <button class="btn btn-secondary" id="prevBtn">← Prev</button>
+    <span id="pageInfo">Page 1</span>
+    <button class="btn btn-secondary" id="nextBtn">Next →</button>
+  </section>
+
+</main>
+
+<!-- Add/Edit Modal -->
+<div id="modalOverlay" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Add Student</h2>
+      <button class="modal-close" id="modalCloseBtn">&times;</button>
+    </div>
+
+    <form id="studentForm">
+      <input type="hidden" id="studentId" />
+
+      <div class="form-row">
+        <label for="name">Name *</label>
+        <input type="text" id="name" required maxlength="100" />
+        <span class="field-error" id="err-name"></span>
+      </div>
+
+      <div class="form-row">
+        <label for="age">Age *</label>
+        <input type="number" id="age" required min="15" max="100" />
+        <span class="field-error" id="err-age"></span>
+      </div>
+
+      <div class="form-row">
+        <label for="email">Email *</label>
+        <input type="email" id="email" required maxlength="100" />
+        <span class="field-error" id="err-email"></span>
+      </div>
+
+      <div class="form-row">
+        <label for="phone">Phone</label>
+        <input type="text" id="phone" maxlength="20" placeholder="Optional" />
+        <span class="field-error" id="err-phone"></span>
+      </div>
+
+      <div class="form-row">
+        <label for="course">Course *</label>
+        <input type="text" id="course" required maxlength="100" />
+        <span class="field-error" id="err-course"></span>
+      </div>
+
+      <div class="form-row">
+        <label for="department">Department</label>
+        <input type="text" id="department" maxlength="100" placeholder="Optional" />
+      </div>
+
+      <div class="form-row">
+        <label for="semester">Semester</label>
+        <input type="number" id="semester" min="1" max="12" placeholder="Optional" />
+        <span class="field-error" id="err-semester"></span>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="submitBtn">Save Student</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div id="deleteOverlay" class="modal-overlay hidden">
+  <div class="modal modal-small">
+    <div class="modal-header">
+      <h2>Delete Student</h2>
+    </div>
+    <p id="deleteConfirmText">Are you sure you want to delete this student? This cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="deleteCancelBtn">Cancel</button>
+      <button class="btn btn-danger" id="deleteConfirmBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,171 +1,227 @@
-# Student Record Management API
+# Student Management System
 
-## Overview
+A full-stack Student Management application built as an internship project. It provides a REST API (FastAPI + SQLAlchemy + MySQL) for managing student records, along with a simple web frontend (HTML/CSS/vanilla JavaScript) that consumes that API.
 
-The Student Record Management API is a backend application developed using FastAPI, SQLAlchemy, and MySQL. The project provides RESTful APIs to manage student records through CRUD (Create, Read, Update, Delete) operations.
+## Description
 
-This project demonstrates database integration, API development, data validation, and dynamic routing in a real-world backend application.
-
----
+This project started as a basic FastAPI CRUD API for student records and was upgraded into a complete full-stack application with:
+- A cleanly layered backend (routes / schemas / models / database logic separated)
+- Input validation and meaningful error handling
+- Search, filtering, and pagination
+- A browser-based frontend for managing students without needing Swagger or Postman
 
 ## Features
 
-* Create a new student record
-* View all student records
-* View a specific student using Student ID
-* Update student details
-* Delete student records
-* Input validation using Pydantic
-* Database integration using SQLAlchemy ORM
-* Dynamic routing with FastAPI
-* Interactive API documentation using Swagger UI
+- Create, view, update, and delete student records
+- Search students by name, email, or course
+- Filter students by course, department, or semester
+- Paginated student listing
+- Duplicate-email prevention on both create and update
+- Field validation (age range, non-empty name/course, valid email/phone format)
+- Dashboard showing total student count
+- Responsive UI with loading, error, and success states
+- Auto-generated API docs via Swagger UI
 
----
+## Technology Stack
 
-## Tech Stack
+**Backend**
+- Python 3
+- FastAPI
+- SQLAlchemy (ORM)
+- MySQL
+- PyMySQL (MySQL driver)
+- Pydantic (validation)
+- Uvicorn (ASGI server)
+- python-dotenv (environment configuration)
 
-* Python
-* FastAPI
-* SQLAlchemy
-* MySQL
-* Pydantic
-* Uvicorn
+**Frontend**
+- HTML5
+- CSS3
+- Vanilla JavaScript (fetch API, no framework)
 
----
+## Architecture
 
-## Project Structure
+```
+Frontend (HTML/CSS/JS)
+        │  fetch()
+        ▼
+FastAPI REST API  (app/routers/students.py)
+        │
+        ▼
+CRUD layer        (app/crud.py)
+        │
+        ▼
+SQLAlchemy ORM     (app/models.py)
+        │
+        ▼
+MySQL Database     (student_db)
+```
 
+**How a request flows through the system:**
+1. The frontend calls an endpoint, e.g. `fetch('/students/')`.
+2. FastAPI routes the request to the matching function in `app/routers/students.py`.
+3. The router validates the request body against a Pydantic schema (`app/schemas.py`), then calls into `app/crud.py`.
+4. `crud.py` uses a SQLAlchemy `Session` to build a query against the `Student` ORM model (`app/models.py`).
+5. SQLAlchemy translates that into SQL and sends it to MySQL through the PyMySQL driver, using the connection configured in `app/database.py`.
+6. The result flows back up: ORM objects → Pydantic response schema → JSON → the frontend.
+
+**What each database piece does:**
+- **`engine`** — knows how to talk to MySQL (host, credentials, driver). Created once at startup.
+- **`SessionLocal`** — a factory for database sessions; each API request gets its own session via a FastAPI dependency (`get_db`), which is closed automatically when the request finishes.
+- **`Base`** — the declarative base class that `Student` inherits from, letting SQLAlchemy map the Python class to the `students` table.
+
+## Folder Structure
+
+```
 student-management-api/
-
 ├── app/
-
-│   ├── main.py
-
-│   ├── database.py
-
-│   ├── models.py
-
-│   ├── schemas.py
-
-│   └── crud.py
-
+│   ├── __init__.py
+│   ├── main.py              # FastAPI app setup, CORS, static file serving
+│   ├── database.py          # SQLAlchemy engine/session, reads .env
+│   ├── models.py            # Student ORM model
+│   ├── schemas.py           # Pydantic request/response schemas + validation
+│   ├── crud.py               # All database query/write logic
+│   └── routers/
+│       └── students.py       # HTTP route handlers for /students
+├── frontend/
+│   ├── index.html
+│   ├── style.css
+│   └── script.js
+├── .env                       # Real credentials (NOT committed — see .gitignore)
+├── .env.example                # Template for .env
+├── .gitignore
 ├── requirements.txt
-
 └── README.md
+```
 
----
+## MySQL Setup
+
+1. Make sure MySQL Server is installed and running locally.
+2. Create the database:
+   ```sql
+   CREATE DATABASE student_db;
+   ```
+   Tables are created automatically by SQLAlchemy the first time the app starts — no manual table creation needed.
+
+## Environment Variable Setup
+
+1. Copy the example file:
+   ```bash
+   cp .env.example .env
+   ```
+2. Edit `.env` with your real MySQL credentials:
+   ```
+   DB_USER=root
+   DB_PASSWORD=your_mysql_password
+   DB_HOST=localhost
+   DB_PORT=3306
+   DB_NAME=student_db
+   ```
+3. `.env` is listed in `.gitignore` and will never be committed.
 
 ## Installation
 
-### Clone the Repository
+```bash
+# 1. Create and activate a virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
 
-git clone <repository-url>
-
-cd student-management-api
-
-### Install Dependencies
-
+# 2. Install dependencies
 pip install -r requirements.txt
+```
 
----
+## Running the Backend
 
-## Database Configuration
+```bash
+uvicorn app.main:app --reload
+```
 
-Create a MySQL database:
+The server starts at `http://127.0.0.1:8000`.
 
-CREATE DATABASE student_db;
+## Accessing the Frontend
 
-Update the database connection string inside `database.py`:
+Once the backend is running, open:
 
-DATABASE_URL = "mysql+pymysql://username:password@localhost/student_db"
+```
+http://127.0.0.1:8000/
+```
 
----
+FastAPI serves the frontend directly — no separate server needed.
 
-## Run the Application
+## Accessing Swagger (API Docs)
 
-python -m uvicorn app.main:app --reload
-
-Server will start at:
-
-http://127.0.0.1:8000
-
----
-
-## API Documentation
-
-Swagger UI:
-
+```
 http://127.0.0.1:8000/docs
-
-ReDoc:
-
-http://127.0.0.1:8000/redoc
-
----
+```
 
 ## API Endpoints
 
-### Create Student
+| Method | Endpoint          | Description                                                                             |
+|--------|--------------------|--------------------------------------------------------------------------------------------|
+| POST   | `/students/`        | Create a new student                                                                      |
+| GET    | `/students/`         | List students (supports `search`, `course`, `department`, `semester`, `skip`, `limit`)      |
+| GET    | `/students/{id}`     | Get a single student by ID                                                                  |
+| PUT    | `/students/{id}`     | Update a student                                                                              |
+| DELETE | `/students/{id}`     | Delete a student                                                                                |
 
+### Query parameters on `GET /students/`
+
+| Parameter    | Type   | Description                                |
+|--------------|--------|-----------------------------------------------|
+| `search`     | string | Matches against name, email, or course           |
+| `course`     | string | Filter by course (partial match)                    |
+| `department` | string | Filter by department (partial match)                    |
+| `semester`   | int    | Filter by exact semester                                    |
+| `skip`       | int    | Number of records to skip (pagination)                        |
+| `limit`      | int    | Max records to return, 1–100 (default 20)                        |
+
+## Example Request / Response
+
+**Request**
+```http
 POST /students/
+Content-Type: application/json
 
-Creates a new student record.
+{
+  "name": "Alex Roy",
+  "age": 20,
+  "email": "alex@example.com",
+  "phone": "9876543210",
+  "course": "Computer Science",
+  "department": "IT",
+  "semester": 3
+}
+```
 
-### Get All Students
+**Response — `201 Created`**
+```json
+{
+  "id": 1,
+  "name": "Alex Roy",
+  "age": 20,
+  "email": "alex@example.com",
+  "phone": "9876543210",
+  "course": "Computer Science",
+  "department": "IT",
+  "semester": 3
+}
+```
 
-GET /students/
+**Error example — duplicate email — `409 Conflict`**
+```json
+{
+  "detail": "A student with this email already exists"
+}
+```
 
-Returns all student records.
+## Screenshots
 
-### Get Student By ID
+_Add screenshots of the dashboard, student list, and add/edit form here before submission._
 
-GET /students/{student_id}
+## Future Improvements
 
-Returns a specific student record.
-
-### Update Student
-
-PUT /students/{student_id}
-
-Updates an existing student record.
-
-### Delete Student
-
-DELETE /students/{student_id}
-
-Deletes a student record.
-
----
-
-## Student Model
-
-| Field  | Type    |
-| ------ | ------- |
-| id     | Integer |
-| name   | String  |
-| age    | Integer |
-| email  | String  |
-| course | String  |
-
----
-
-## Learning Outcomes
-
-Through this project, the following concepts were implemented:
-
-* FastAPI application development
-* REST API design
-* CRUD operations
-* SQLAlchemy ORM integration
-* MySQL database connectivity
-* Pydantic data validation
-* Dynamic routing
-* API testing using Swagger UI
-
----
-
-## Author
-
-Archismita Das
-
-Backend Development Internship Project
+- Authentication (login for staff/admin)
+- Bulk import/export (CSV)
+- Sortable table columns
+- Soft-delete / audit trail (`created_at`, `updated_at`)
+- Automated test suite (pytest)

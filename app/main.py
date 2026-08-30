@@ -1,149 +1,45 @@
-from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
-from app.database import SessionLocal, engine, Base
-from app.models import Student
-from app.schemas import StudentCreate, StudentResponse
+from app.database import Base, engine
+from app.routers import students
 
-# Create database tables
+# Create tables on startup if they don't already exist.
+# (Existing tables/data are left untouched.)
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="Student Record Management API"
+    title="Student Record Management API",
+    description="A simple CRUD API for managing student records.",
+    version="2.0.0",
 )
 
-# Database Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# Allow the frontend to call the API during local development. Since the
+# frontend is served by this same FastAPI app (see the static mount below),
+# this is mainly a safety net for running the frontend separately
+# (e.g. opening index.html directly or serving it with a different tool).
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+        "http://127.0.0.1:5500",  # e.g. VS Code Live Server, if used instead
+        "http://localhost:5500",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(students.router)
 
 
-# -------------------------
-# Create Student API (POST)
-# -------------------------
-@app.post("/students/", response_model=StudentResponse)
-def create_student(
-    student: StudentCreate,
-    db: Session = Depends(get_db)
-):
-    db_student = Student(
-        name=student.name,
-        age=student.age,
-        email=student.email,
-        course=student.course
-    )
-
-    db.add(db_student)
-    db.commit()
-    db.refresh(db_student)
-
-    return db_student
-
-
-# -------------------------
-# View All Students API (GET)
-# -------------------------
-@app.get("/students/", response_model=list[StudentResponse])
-def get_students(
-    db: Session = Depends(get_db)
-):
-    return db.query(Student).all()
-
-
-# -------------------------
-# View Single Student API
-# Dynamic Routing Example
-# -------------------------
-@app.get("/students/{student_id}", response_model=StudentResponse)
-def get_student(
-    student_id: int,
-    db: Session = Depends(get_db)
-):
-    student = (
-        db.query(Student)
-        .filter(Student.id == student_id)
-        .first()
-    )
-
-    if not student:
-        raise HTTPException(
-            status_code=404,
-            detail="Student not found"
-        )
-
-    return student
-
-
-# -------------------------
-# Update Student API (PUT)
-# Final Enhancement
-# -------------------------
-@app.put("/students/{student_id}",
-         response_model=StudentResponse)
-def update_student(
-    student_id: int,
-    student: StudentCreate,
-    db: Session = Depends(get_db)
-):
-    existing_student = (
-        db.query(Student)
-        .filter(Student.id == student_id)
-        .first()
-    )
-
-    if not existing_student:
-        raise HTTPException(
-            status_code=404,
-            detail="Student not found"
-        )
-
-    existing_student.name = student.name
-    existing_student.age = student.age
-    existing_student.email = student.email
-    existing_student.course = student.course
-
-    db.commit()
-    db.refresh(existing_student)
-
-    return existing_student
-
-
-# -------------------------
-# Delete Student API
-# -------------------------
-@app.delete("/students/{student_id}")
-def delete_student(
-    student_id: int,
-    db: Session = Depends(get_db)
-):
-    student = (
-        db.query(Student)
-        .filter(Student.id == student_id)
-        .first()
-    )
-
-    if not student:
-        raise HTTPException(
-            status_code=404,
-            detail="Student not found"
-        )
-
-    db.delete(student)
-    db.commit()
-
-    return {
-        "message": f"Student with ID {student_id} deleted successfully"
-    }
-
-
-# -------------------------
-# Home Route
-# -------------------------
-@app.get("/")
+@app.get("/api")
 def home():
-    return {
-        "message": "Welcome to Student Record Management API"
-    }
+    return {"message": "Welcome to Student Record Management API"}
+
+
+# Serve the frontend (index.html, style.css, script.js) at "/".
+# Registered last so it doesn't shadow the API routes or /docs above.
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
