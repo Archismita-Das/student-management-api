@@ -1,186 +1,169 @@
 # Student Management System
 
-A full-stack Student Management application built as an internship project. It provides a REST API (FastAPI + SQLAlchemy + MySQL) for managing student records, along with a simple web frontend (HTML/CSS/vanilla JavaScript) that consumes that API.
+A full-stack Student Management System built using **FastAPI, SQLAlchemy, MySQL, HTML, CSS, and JavaScript**.
 
-## Description
-
-This project started as a basic FastAPI CRUD API for student records and was upgraded into a complete full-stack application with:
-- A cleanly layered backend (routes / schemas / models / database logic separated)
-- Input validation and meaningful error handling
-- Search, filtering, and pagination
-- A browser-based frontend for managing students without needing Swagger or Postman
+The project started as a basic CRUD API and was upgraded into an intermediate-level application with a web frontend, validation, search, filtering, pagination, and proper database integration.
 
 ## Features
 
-- Create, view, update, and delete student records
+- Create, view, update, and delete students
 - Search students by name, email, or course
-- Filter students by course, department, or semester
-- Paginated student listing
-- Duplicate-email prevention on both create and update
-- Field validation (age range, non-empty name/course, valid email/phone format)
-- Dashboard showing total student count
-- Responsive UI with loading, error, and success states
-- Auto-generated API docs via Swagger UI
+- Filter by course, department, and semester
+- Pagination for student records
+- Duplicate email prevention
+- Input validation and error handling
+- Dashboard with total student count
+- Responsive frontend
+- FastAPI Swagger API documentation
+- MySQL database integration using SQLAlchemy
 
 ## Technology Stack
 
-**Backend**
-- Python 3
+### Backend
+- Python
 - FastAPI
-- SQLAlchemy (ORM)
+- SQLAlchemy
 - MySQL
-- PyMySQL (MySQL driver)
-- Pydantic (validation)
-- Uvicorn (ASGI server)
-- python-dotenv (environment configuration)
+- PyMySQL
+- Pydantic
+- Uvicorn
+- python-dotenv
 
-**Frontend**
+### Frontend
 - HTML5
 - CSS3
-- Vanilla JavaScript (fetch API, no framework)
+- JavaScript
+- Fetch API
 
 ## Architecture
 
-```
-Frontend (HTML/CSS/JS)
-        │  fetch()
-        ▼
-FastAPI REST API  (app/routers/students.py)
-        │
-        ▼
-CRUD layer        (app/crud.py)
-        │
-        ▼
-SQLAlchemy ORM     (app/models.py)
-        │
-        ▼
-MySQL Database     (student_db)
-```
-
-**How a request flows through the system:**
-1. The frontend calls an endpoint, e.g. `fetch('/students/')`.
-2. FastAPI routes the request to the matching function in `app/routers/students.py`.
-3. The router validates the request body against a Pydantic schema (`app/schemas.py`), then calls into `app/crud.py`.
-4. `crud.py` uses a SQLAlchemy `Session` to build a query against the `Student` ORM model (`app/models.py`).
-5. SQLAlchemy translates that into SQL and sends it to MySQL through the PyMySQL driver, using the connection configured in `app/database.py`.
-6. The result flows back up: ORM objects → Pydantic response schema → JSON → the frontend.
-
-**What each database piece does:**
-- **`engine`** — knows how to talk to MySQL (host, credentials, driver). Created once at startup.
-- **`SessionLocal`** — a factory for database sessions; each API request gets its own session via a FastAPI dependency (`get_db`), which is closed automatically when the request finishes.
-- **`Base`** — the declarative base class that `Student` inherits from, letting SQLAlchemy map the Python class to the `students` table.
-
-## Folder Structure
-
-```
+```text
+Frontend (HTML/CSS/JavaScript)
+            |
+          fetch()
+            |
+            v
+       FastAPI REST API
+            |
+            v
+        CRUD Layer
+            |
+            v
+       SQLAlchemy ORM
+            |
+            v
+       MySQL Database
+Request Flow
+The frontend sends a request using JavaScript fetch().
+FastAPI receives the request through the appropriate route.
+Pydantic validates the request data.
+The CRUD layer handles database operations.
+SQLAlchemy communicates with MySQL.
+The result is returned as JSON to the frontend.
+Project Structure
 student-management-api/
+│
 ├── app/
 │   ├── __init__.py
-│   ├── main.py              # FastAPI app setup, CORS, static file serving
-│   ├── database.py          # SQLAlchemy engine/session, reads .env
-│   ├── models.py            # Student ORM model
-│   ├── schemas.py           # Pydantic request/response schemas + validation
-│   ├── crud.py               # All database query/write logic
+│   ├── main.py
+│   ├── database.py
+│   ├── models.py
+│   ├── schemas.py
+│   ├── crud.py
 │   └── routers/
-│       └── students.py       # HTTP route handlers for /students
+│       ├── __init__.py
+│       └── students.py
+│
 ├── frontend/
 │   ├── index.html
-│   ├── style.css
-│   └── script.js
-├── .env                       # Real credentials (NOT committed — see .gitignore)
-├── .env.example                # Template for .env
+│   ├── script.js
+│   └── style.css
+│
+├── .env.example
 ├── .gitignore
 ├── requirements.txt
 └── README.md
-```
+Database Setup
 
-## MySQL Setup
+Make sure MySQL Server is installed and running.
 
-1. Make sure MySQL Server is installed and running locally.
-2. Create the database:
-   ```sql
-   CREATE DATABASE student_db;
-   ```
-   Tables are created automatically by SQLAlchemy the first time the app starts — no manual table creation needed.
+Create the database:
 
-## Environment Variable Setup
+CREATE DATABASE student_db;
 
-1. Copy the example file:
-   ```bash
-   cp .env.example .env
-   ```
-2. Edit `.env` with your real MySQL credentials:
-   ```
-   DB_USER=root
-   DB_PASSWORD=your_mysql_password
-   DB_HOST=localhost
-   DB_PORT=3306
-   DB_NAME=student_db
-   ```
-3. `.env` is listed in `.gitignore` and will never be committed.
+The required tables are created automatically by SQLAlchemy when the application starts.
 
-## Installation
+Environment Configuration
 
-```bash
-# 1. Create and activate a virtual environment (recommended)
+Create a .env file in the project root using .env.example as a template.
+
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=student_db
+
+Do not commit .env to GitHub.
+
+Installation
+
+Create a virtual environment:
+
 python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
 
-# 2. Install dependencies
+Activate it on Windows:
+
+venv\Scripts\activate
+
+Install dependencies:
+
 pip install -r requirements.txt
-```
+Run the Application
 
-## Running the Backend
+Start the FastAPI server:
 
-```bash
 uvicorn app.main:app --reload
-```
 
-The server starts at `http://127.0.0.1:8000`.
+The application will be available at:
 
-## Accessing the Frontend
-
-Once the backend is running, open:
-
-```
 http://127.0.0.1:8000/
-```
 
-FastAPI serves the frontend directly — no separate server needed.
+The frontend is served directly by FastAPI, so no separate frontend server is required.
 
-## Accessing Swagger (API Docs)
+Swagger API Documentation
 
-```
+FastAPI automatically provides interactive API documentation at:
+
 http://127.0.0.1:8000/docs
-```
+API Endpoints
+Method	Endpoint	Description
+POST	/students/	Create a student
+GET	/students/	List students
+GET	/students/{id}	Get a student
+PUT	/students/{id}	Update a student
+DELETE	/students/{id}	Delete a student
+GET /students/ Query Parameters
+Parameter	Type	Description
+search	string	Search by name, email, or course
+course	string	Filter by course
+department	string	Filter by department
+semester	integer	Filter by semester
+skip	integer	Number of records to skip
+limit	integer	Maximum records to return
+Student Data
 
-## API Endpoints
+Each student record contains:
 
-| Method | Endpoint          | Description                                                                             |
-|--------|--------------------|--------------------------------------------------------------------------------------------|
-| POST   | `/students/`        | Create a new student                                                                      |
-| GET    | `/students/`         | List students (supports `search`, `course`, `department`, `semester`, `skip`, `limit`)      |
-| GET    | `/students/{id}`     | Get a single student by ID                                                                  |
-| PUT    | `/students/{id}`     | Update a student                                                                              |
-| DELETE | `/students/{id}`     | Delete a student                                                                                |
+id
+name
+age
+email
+phone
+course
+department
+semester
 
-### Query parameters on `GET /students/`
-
-| Parameter    | Type   | Description                                |
-|--------------|--------|-----------------------------------------------|
-| `search`     | string | Matches against name, email, or course           |
-| `course`     | string | Filter by course (partial match)                    |
-| `department` | string | Filter by department (partial match)                    |
-| `semester`   | int    | Filter by exact semester                                    |
-| `skip`       | int    | Number of records to skip (pagination)                        |
-| `limit`      | int    | Max records to return, 1–100 (default 20)                        |
-
-## Example Request / Response
-
-**Request**
-```http
-POST /students/
-Content-Type: application/json
+Example request:
 
 {
   "name": "Alex Roy",
@@ -188,40 +171,25 @@ Content-Type: application/json
   "email": "alex@example.com",
   "phone": "9876543210",
   "course": "Computer Science",
-  "department": "IT",
+  "department": "CSE",
   "semester": 3
 }
-```
+Screenshots
+Student Dashboard
 
-**Response — `201 Created`**
-```json
-{
-  "id": 1,
-  "name": "Alex Roy",
-  "age": 20,
-  "email": "alex@example.com",
-  "phone": "9876543210",
-  "course": "Computer Science",
-  "department": "IT",
-  "semester": 3
-}
-```
+Add project screenshot here.
 
-**Error example — duplicate email — `409 Conflict`**
-```json
-{
-  "detail": "A student with this email already exists"
-}
-```
+Add / Edit Student
 
-## Screenshots
+Add project screenshot here.
 
-_Add screenshots of the dashboard, student list, and add/edit form here before submission._
+Future Improvements
+Authentication and role-based access
+CSV import/export
+Sortable table columns
+Automated testing with pytest
+Audit fields such as created_at and updated_at
+Cloud deployment
+Author
 
-## Future Improvements
-
-- Authentication (login for staff/admin)
-- Bulk import/export (CSV)
-- Sortable table columns
-- Soft-delete / audit trail (`created_at`, `updated_at`)
-- Automated test suite (pytest)
+Archismita Das
